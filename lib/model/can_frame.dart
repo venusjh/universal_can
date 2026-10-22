@@ -29,15 +29,11 @@ enum CanSendCommand {
 
 /// CAN 통신 속도 (Baud Rate)
 enum CanBaudRate {
-  cb10k(0),
-  cb20k(1),
-  cb50k(2),
-  cb100k(3),
-  cb125k(4),
-  cb250k(5),
-  cb500k(6),
-  cb800k(7),
-  cb1m(8); // 혹은 cb1000k(8)
+  cb100k(0),
+  cb125k(1),
+  cb250k(2),
+  cb500k(3),
+  cb1000k(4);
 
   final int value;
   const CanBaudRate(this.value);

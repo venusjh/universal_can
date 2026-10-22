@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
+
 import '../model/can_frame.dart';
 import '../parser/can_parser.dart';
 import '../parser/crc8.dart';

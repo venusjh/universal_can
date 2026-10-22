@@ -170,8 +170,6 @@ class SerialCanClient implements CanClient, CanTransport {
         debugPrint('[SLCAN] CAN 채널 닫힘');
       }
 
-      // CAN 채널을 닫을 때는 버퍼만 비우고 리스너는 유지하거나,
-      // 필요에 따라 재연결 시 _setupDataListener가 다시 불리므로 안전하게 처리
       _rxBuffer = '';
 
       return success;
@@ -250,7 +248,6 @@ class SerialCanClient implements CanClient, CanTransport {
         _dataChannel.receiveBroadcastStream().listen(
               (data) {
             final Uint8List bytes;
-
             if (data is Uint8List) {
               bytes = data;
             } else if (data is List<int>) {
@@ -350,15 +347,11 @@ class SerialCanClient implements CanClient, CanTransport {
 extension CanBaudRateExt on CanBaudRate {
   String get slcanCommand {
     switch (this) {
-      case CanBaudRate.cb10k: return 'S0\r';
-      case CanBaudRate.cb20k: return 'S1\r';
-      case CanBaudRate.cb50k: return 'S2\r';
       case CanBaudRate.cb100k: return 'S3\r';
       case CanBaudRate.cb125k: return 'S4\r';
       case CanBaudRate.cb250k: return 'S5\r';
       case CanBaudRate.cb500k: return 'S6\r';
-      case CanBaudRate.cb800k: return 'S7\r';
-      case CanBaudRate.cb1m: return 'S8\r';
+      case CanBaudRate.cb1000k: return 'S8\r';
     }
   }
 }
