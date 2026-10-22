@@ -1,7 +1,7 @@
 name: universal_can
-description: "A new Flutter plugin project."
-version: 0.1.0
-homepage:
+description: "A robust Flutter and Dart package for universal CAN bus communication, supporting binary framing, CRC8 validation, and multi-client connections (Bluetooth & Serial)."
+version: 1.0.0
+homepage: "https://github.com/venusjh/universal_can"
 
 environment:
   sdk: ^3.11.4
