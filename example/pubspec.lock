@@ -71,7 +71,7 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_bluetooth_serial_ble:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_bluetooth_serial_ble
       sha256: "771e46fa520e22c92f8d0b0c58c2796436c97dee17bde80beb3416c318746ccb"
