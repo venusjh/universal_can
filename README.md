@@ -1,3 +1,5 @@
+[![Flutter CI](https://github.com/venusjh/universal_can/actions/workflows/main.yml/badge.svg)](https://github.com/venusjh/universal_can/actions/workflows/main.yml)
+
 # Universal CAN Communication Package
 
 Flutter 환경에서 USB Serial 및 Bluetooth를 통해 커스텀 16바이트 바이너리 프로토콜 기반의 CAN 통신을 수행할 수 있도록 지원하는 패키지입니다.
