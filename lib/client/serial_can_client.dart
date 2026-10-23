@@ -260,35 +260,16 @@ class SerialCanClient implements CanClient, CanTransport {
 
             _rxBuffer += ascii.decode(bytes, allowInvalid: true);
 
-            while (true) {
-              final rIndex = _rxBuffer.indexOf('\r');
-              final nIndex = _rxBuffer.indexOf('\n');
-
-              if (rIndex == -1 && nIndex == -1) break;
-
-              int index;
-              if (rIndex != -1 && nIndex != -1) {
-                index = rIndex < nIndex ? rIndex : nIndex;
-              } else {
-                index = rIndex != -1 ? rIndex : nIndex;
-              }
-
-              final packet = _rxBuffer.substring(0, index).trim();
-
-              // 구분자 및 연속된 개행 문자(\r\n 등) 처리
-              int nextIndex = index + 1;
-              if (nextIndex < _rxBuffer.length) {
-                if (_rxBuffer[index] == '\r' && _rxBuffer[nextIndex] == '\n') {
-                  nextIndex++;
-                }
-              }
-              _rxBuffer = _rxBuffer.substring(nextIndex);
+            while (_rxBuffer.contains('\r')) {
+              final crIndex = _rxBuffer.indexOf('\r');
+              final packet = _rxBuffer.substring(0, crIndex).trim();
+              _rxBuffer = _rxBuffer.substring(crIndex + 1);
 
               if (packet.isNotEmpty) {
                 _parseSlcanPacket(packet);
               }
             }
-              },
+          },
           onError: (Object error) {
             debugPrint('[SLCAN RX 오류] $error');
           },
