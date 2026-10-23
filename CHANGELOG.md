@@ -6,3 +6,6 @@
 ## 0.0.2
 * Fixed an error where the package version and CHANGELOG version were different.
 * Modified the badge image path in the README.
+
+## 0.0.3
+* Translated remaining Korean text in README examples to English.
