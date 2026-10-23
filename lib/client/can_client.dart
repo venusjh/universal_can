@@ -9,7 +9,7 @@ abstract class CanClient {
   /// Current connection status with physical devices (USB Serial, Bluetooth, etc.)
   bool get isConnected;
 
-  /// 파싱 완료된 CAN 수신 프레임 스트림
+  /// Parsed CAN received frame stream
   Stream<CanDataPackType> get frames;
 
   // ===========================================================================

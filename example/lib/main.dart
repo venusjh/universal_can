@@ -62,7 +62,7 @@ class _TestScreenState extends State<TestScreen> {
   }
 
   // ==========================================
-  // Bluetooth 장치 검색 및 연결
+  // Search for and connect Bluetooth devices
   // ==========================================
   Future<void> startDiscovery() async {
     try {
@@ -152,7 +152,7 @@ class _TestScreenState extends State<TestScreen> {
   }
 
   // ==========================================
-  // CAN 데이터 전송 (패키지 표준 API 활용)
+  // CAN Data Transmission (Utilizing Package Standard API)
   // ==========================================
   Future<void> sendTestCanFrame() async {
     try {
@@ -227,7 +227,6 @@ class _TestScreenState extends State<TestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 상태 카드
             Card(
               color: Colors.deepPurple.shade50,
               child: Padding(
@@ -240,7 +239,6 @@ class _TestScreenState extends State<TestScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 기기 검색 및 리스트
             ElevatedButton.icon(
               onPressed: startDiscovery,
               icon: const Icon(Icons.search),
@@ -275,7 +273,6 @@ class _TestScreenState extends State<TestScreen> {
             ),
             const Divider(height: 24),
 
-            // CAN 제어 버튼 영역
             Row(
               children: [
                 Expanded(
@@ -305,7 +302,6 @@ class _TestScreenState extends State<TestScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 카운터 통계
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -321,7 +317,6 @@ class _TestScreenState extends State<TestScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 로그 콘솔 영역
             const Text(
               'Real-time communication logs',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),

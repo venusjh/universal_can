@@ -92,7 +92,6 @@ class UniversalCanPlugin :
                     )
                 }
 
-                // 1. CANable 디바이스 찾기 (slcan: 0x0483 / 0x5740, candlelight: 0x1D50 / 0x606F)
                 val device = findUsbDevice(0x0483, 0x5740)
                     ?: findUsbDevice(0x1D50, 0x606F)
                     ?: findCdcDevice()
@@ -102,7 +101,6 @@ class UniversalCanPlugin :
                     return
                 }
 
-                // 2. USB 권한 확인 및 요청
                 if (usbManager?.hasPermission(device) != true) {
                     val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -122,13 +120,11 @@ class UniversalCanPlugin :
                     return
                 }
 
-                // 3. 디바이스 오픈 및 인터페이스 Claim
                 if (!openCdcDevice(device)) {
                     result.error("OPEN_FAILED", "Failed to open CDC USB device", null)
                     return
                 }
 
-                // 4. 수신 쓰레드 시작
                 startReadThread()
                 result.success("USB_DEVICE_READY")
             }
@@ -180,7 +176,7 @@ class UniversalCanPlugin :
     }
 
     // ==========================================
-    // USB CDC-ACM 제어 관련 로직
+    // USB CDC-ACM control related logic
     // ==========================================
 
     private fun setCp210xBaudRate(connection: UsbDeviceConnection, baudRate: Int) {
@@ -190,7 +186,7 @@ class UniversalCanPlugin :
             (baudRate shr 16 and 0xFF).toByte(),
             (baudRate shr 24 and 0xFF).toByte()
         )
-        // CP210x Baud Rate 설정 커맨드 (0x1E)
+        // CP210x Baud Rate setting command (0x1E)
         val result = connection.controlTransfer(0x41, 0x1E, 0, 0, data, data.size, 1000)
         Log.d("USB", "CP210x BaudRate($baudRate) result = $result")
     }
@@ -263,7 +259,7 @@ class UniversalCanPlugin :
         connection.controlTransfer(0x21, 0x22, 0x03, 0, null, 0, 1000)
         connection.controlTransfer(0x41, 0x07, 0x0303, 0, null, 0, 1000)
 
-        // 3. CP210x <-> STM32 MCU 간 UART 속도를 115200으로 설정
+        // 3. Set the UART speed between CP210x and STM32 MCU to 115200
         val baudData = byteArrayOf(
             0x00.toByte(), 0xC2.toByte(), 0x01.toByte(), 0x00.toByte() // 115200
         )
