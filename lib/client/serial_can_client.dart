@@ -19,7 +19,7 @@ class SerialCanClient implements CanClient, CanTransport {
 
   final _dataController = StreamController<Uint8List>.broadcast();
 
-  /// SLCAN 파싱된 CAN 프레임을 상위로 전달하기 위한 자체 프레임 스트림 컨트롤러
+  /// SLCAN is a proprietary frame stream controller for transmitting parsed CAN frames to the parent layer.
   final _frameController = StreamController<CanDataPackType>.broadcast();
 
   late final CanProtocolClient _canClient;
@@ -55,22 +55,22 @@ class SerialCanClient implements CanClient, CanTransport {
 
     try {
       final result = await _channel.invokeMethod('openSerial');
-      // debugPrint('USB Serial 연결 결과: $result');
+      // debugPrint('USB Serial Connection result: $result');
 
       if (result == 'USB_DEVICE_READY') {
         _connected = true;
-        // 연결 성공 시 리스너가 정상 동작하도록 보장
+        // Guarantees that the listener operates normally upon successful connection
         _setupDataListener();
         return true;
       }
 
-      debugPrint('[USB 오류] 연결 실패: $result');
+      debugPrint('[USB Error] Connection Failed: $result');
       return false;
     } on PlatformException catch (e) {
-      debugPrint('USB Serial 연결 실패: ${e.code} ${e.message}');
+      debugPrint('USB Serial connection failed: ${e.code} ${e.message}');
       return false;
     } catch (e) {
-      debugPrint('USB Serial 연결 예외: $e');
+      debugPrint('USB Serial Connection Exception: $e');
       return false;
     }
   }
@@ -82,11 +82,11 @@ class SerialCanClient implements CanClient, CanTransport {
     try {
       await sendCommand('C\r');
     } catch (e) {
-      debugPrint('[SLCAN 종료 오류] $e');
+      debugPrint('[SLCAN Termination Error] $e');
     } finally {
       _connected = false;
       _rxBuffer = '';
-      // 연결 해제 시 리스너 정리
+      // Clean up listeners when disconnecting
       await _dataSubscription?.cancel();
       _dataSubscription = null;
     }
@@ -111,10 +111,10 @@ class SerialCanClient implements CanClient, CanTransport {
 
       return result == data.length;
     } on PlatformException catch (e) {
-      debugPrint('USB Serial 전송 실패: ${e.code} ${e.message}');
+      debugPrint('USB Serial transmission failure: ${e.code} ${e.message}');
       return false;
     } catch (e) {
-      debugPrint('USB Serial 전송 예외: $e');
+      debugPrint('USB Serial Transmission Exception: $e');
       return false;
     }
   }
@@ -146,35 +146,35 @@ class SerialCanClient implements CanClient, CanTransport {
   }) async {
     if (!_connected) return false;
 
-    // CAN 연결 시도 전 리스너가 살아있도록 확실히 보장
+    // Ensures the listener is alive before attempting a CAN connection.
     _setupDataListener();
 
-    // 기존 채널 닫기
+    // Close existing channel
     final closed = await sendCommand('C\r');
     if (!closed) return false;
 
-    // 동적 보레이트 명령어 전송
+    // Dynamic baud rate command transmission
     final baudSet = await sendCommand(baudRate.slcanCommand);
     if (!baudSet) return false;
 
-    // 채널 오픈
+    // Channel Open
     return await sendCommand('O\r');
   }
 
   @override
   Future<bool> disconnectCan({int channel = 0}) async {
     try {
-      // CAN 정지 명령어 전송
+      // Sending CAN stop command
       final success = await sendCommand('C\r');
       if (success) {
-        debugPrint('[SLCAN] CAN 채널 닫힘');
+        debugPrint('[SLCAN] CAN channel closed');
       }
 
       _rxBuffer = '';
 
       return success;
     } catch (e) {
-      debugPrint('[SLCAN] CAN 채널 닫기 중 예외 발생: $e');
+      debugPrint('[SLCAN] Exception occurred while closing CAN channel: $e');
       _rxBuffer = '';
       return false;
     }
@@ -188,19 +188,19 @@ class SerialCanClient implements CanClient, CanTransport {
         bool isExtended = true,
       }) async {
     if (!_connected) {
-      debugPrint('[SLCAN TX 오류] USB 미연결');
+      debugPrint('[[SLCAN TX Error] USB not connected');
       return false;
     }
 
     if (data.length > 8) {
-      debugPrint('[SLCAN TX 오류] CAN 데이터는 최대 8바이트');
+      debugPrint('[[SLCAN TX Error] CAN data is up to 8 bytes');
       return false;
     }
 
     final maxId = isExtended ? 0x1FFFFFFF : 0x7FF;
 
     if (id < 0 || id > maxId) {
-      debugPrint('[SLCAN TX 오류] 잘못된 CAN ID: $id');
+      debugPrint('[[SLCAN TX Error] Invalid CAN ID: $id');
       return false;
     }
 
@@ -237,11 +237,11 @@ class SerialCanClient implements CanClient, CanTransport {
   // Internal Data Listener & SLCAN ASCII Parsing
   // ===========================================================================
   void _setupDataListener() {
-    // 이미 구독 중인 리스너가 있다면 안전하게 해제 (중복 방지)
+    // Safely unsubscribe if there is already a subscribed listener (prevent duplicates)
     _dataSubscription?.cancel();
     _dataSubscription = null;
 
-    // 수신 버퍼 초기화
+    // Initialize receive buffer
     _rxBuffer = '';
 
     _dataSubscription =
@@ -271,7 +271,7 @@ class SerialCanClient implements CanClient, CanTransport {
             }
           },
           onError: (Object error) {
-            debugPrint('[SLCAN RX 오류] $error');
+            debugPrint('[SLCAN RX error] $error');
           },
         );
   }
@@ -289,7 +289,7 @@ class SerialCanClient implements CanClient, CanTransport {
     final idLength = isExtended ? 8 : 3;
 
     if (packet.length < 1 + idLength + 1) {
-      debugPrint('[SLCAN 오류] 헤더 길이 부족: $packet');
+      debugPrint('[[SLCAN Error] Insufficient header length: $packet');
       return;
     }
 
@@ -301,14 +301,14 @@ class SerialCanClient implements CanClient, CanTransport {
       final dlc = int.parse(dlcStr, radix: 16);
 
       if (dlc < 0 || dlc > 8) {
-        debugPrint('[SLCAN 오류] 잘못된 DLC: $packet');
+        debugPrint('[SLCAN Error] Invalid DLC: $packet');
         return;
       }
 
       final expectedLength = 1 + idLength + 1 + (dlc * 2);
 
       if (packet.length != expectedLength) {
-        debugPrint('[SLCAN 오류] 데이터 길이 불일치: $packet');
+        debugPrint('[SLCAN Error] Data Length Mismatch: $packet');
         return;
       }
 
@@ -336,7 +336,7 @@ class SerialCanClient implements CanClient, CanTransport {
 
       _frameController.add(frame);
     } catch (e) {
-      debugPrint('[SLCAN 파싱 오류] $packet / $e');
+      debugPrint('[SLCAN Parsing Error] $packet / $e');
     }
   }
 }

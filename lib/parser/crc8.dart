@@ -1,9 +1,9 @@
-/// CRC-8 체크섬 계산을 위한 유틸리티 클래스
+/// Utility class for CRC-8 checksum calculation
 class Crc8 {
   // ===========================================================================
   // Constants
   // ===========================================================================
-  /// CRC-8 Look-up Table (256 바이트)
+  /// CRC-8 Look-up Table (256 byte)
   static const List<int> table = [
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
     0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
@@ -26,7 +26,7 @@ class Crc8 {
   // ===========================================================================
   // Public Methods
   // ===========================================================================
-  /// 바이트 배열의 index 1부터 15까지 룩업 테이블을 기반으로 CRC-8 체크섬을 계산합니다.
+  /// Calculate the CRC-8 checksum based on the lookup table for indices 1 through 15 of the byte array.
   static int calculate(List<int> bytes) {
     int crc = 0;
 

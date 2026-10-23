@@ -33,10 +33,10 @@ class TestScreen extends StatefulWidget {
 }
 
 class _TestScreenState extends State<TestScreen> {
-  // 패키지가 제공하는 블루투스 CAN 클라이언트
+// Bluetooth CAN client provided by the package
   final BluetoothCanClient _bluetoothClient = BluetoothCanClient();
 
-  String _status = '연결 안 됨';
+  String _status = 'Not connected';
   final List<BluetoothDevice> _devices = [];
   StreamSubscription? _btCanSub;
 
@@ -66,7 +66,7 @@ class _TestScreenState extends State<TestScreen> {
   // ==========================================
   Future<void> startDiscovery() async {
     try {
-      _addLog('Bluetooth 장치 검색 시작...');
+      _addLog('Start searching for Bluetooth devices...');
       await FlutterBluetoothSerial.instance.cancelDiscovery();
       _devices.clear();
 
@@ -78,47 +78,47 @@ class _TestScreenState extends State<TestScreen> {
               setState(() {
                 _devices.add(result.device);
               });
-              _addLog('타겟 장치 발견: ${result.device.name ?? '알 수 없음'} (${result.device.address})');
+              _addLog('Target device found: ${result.device.name ?? 'UNKNOWN'} (${result.device.address})');
             }
           }
         },
         onDone: () {
-          _addLog('Bluetooth 검색 완료');
+          _addLog('Bluetooth search complete');
         },
       );
     } catch (e) {
-      _addLog('Bluetooth 검색 에러: $e');
+      _addLog('Bluetooth search error: $e');
     }
   }
 
   Future<void> connectBluetooth(String address) async {
-    _addLog('블루투스 연결 시도 중... ($address)');
+    _addLog('Attempting to connect via Bluetooth... ($address)');
 
     try {
       final result = await _bluetoothClient.connect(address);
 
       if (result) {
         setState(() {
-          _status = 'Bluetooth 연결 성공';
+          _status = 'Bluetooth connection successful';
         });
-        _addLog('Bluetooth 연결 성공!');
+        _addLog('Bluetooth connection successful!');
 
-        // 패키지의 connectCan API 호출 (내부적으로 scConnect 및 CRC 자동 처리)
+        // Calls the package's connectCan API (internally auto-handles scConnect and CRC)
         final canConnect = await _bluetoothClient.connectCan(
           channel: 0,
           baudRate: CanBaudRate.cb125k,
           busMode: CanBusMode.cbmNormal,
         );
 
-        _addLog('CAN 버스 초기화 결과: $canConnect');
+        _addLog('CAN bus initialization result: $canConnect');
 
         if (canConnect) {
           setState(() {
-            _status = 'Bluetooth CAN 초기화 완료';
+            _status = 'Bluetooth CAN initialization complete';
           });
         }
 
-        // 패키지 내부의 파싱된 프레임 스트림 구독
+        // Subscribe to parsed frame streams inside the package
         _btCanSub?.cancel();
         _btCanSub = _bluetoothClient.frames.listen(
               (frame) {
@@ -134,19 +134,19 @@ class _TestScreenState extends State<TestScreen> {
             _addLog('Stream Error: $error');
           },
         );
-        _addLog('프레임 리스닝 스트림 구독 완료');
+        _addLog('Frame listening stream subscription complete');
 
       } else {
         setState(() {
-          _status = 'Bluetooth 연결 실패';
+          _status = 'Bluetooth connection failed';
         });
-        _addLog('Bluetooth 연결 거부됨');
+        _addLog('Bluetooth connection refused');
       }
     } catch (e, stack) {
-      _addLog('연결 중 예외 발생: $e');
+      _addLog('Exception occurred during connection: $e');
       debugPrint('$stack');
       setState(() {
-        _status = 'Bluetooth 연결 에러 발생';
+        _status = 'Bluetooth connection error occurred';
       });
     }
   }
@@ -163,9 +163,9 @@ class _TestScreenState extends State<TestScreen> {
         isExtended: false,
       );
 
-      _addLog('단발 테스트 프레임 전송 결과: ${success ? "성공" : "실패"}');
+      _addLog('Result of single test frame transmission: ${success ? "success" : "failure}"}');
     } catch (e) {
-      _addLog('TX 에러: $e');
+      _addLog('TX error: $e');
     }
   }
 
@@ -194,22 +194,22 @@ class _TestScreenState extends State<TestScreen> {
         );
 
         if (success) {
-          _addLog('TX [가상 데이터 루프]: 카운터 $counter 전송 성공');
+          _addLog('TX [Virtual Data Loop]: Counter $counter transmission successful');
         } else {
-          _addLog('TX [가상 데이터 루프]: 전송 거부됨');
+          _addLog('TX [Virtual Data Loop]: Transmission Rejected');
         }
       } catch (e) {
-        _addLog('가상 데이터 전송 에러: $e');
+        _addLog('Virtual data transmission error: $e');
         timer.cancel();
       }
     });
-    _addLog('가상 데이터 송신 루프 시작');
+    _addLog('Start virtual data transmission loop');
   }
 
   void stopSendingMockData() {
     _mockSendTimer?.cancel();
     _mockSendTimer = null;
-    _addLog('가상 데이터 송신 루프 중지');
+    _addLog('Stop virtual data transmission loop');
   }
 
   // ==========================================
@@ -233,7 +233,7 @@ class _TestScreenState extends State<TestScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Text(
-                  '현재 상태: $_status',
+                  'Current status: $_status',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                 ),
               ),
@@ -244,7 +244,7 @@ class _TestScreenState extends State<TestScreen> {
             ElevatedButton.icon(
               onPressed: startDiscovery,
               icon: const Icon(Icons.search),
-              label: const Text('타겟 장치 검색 (E0:5A:1B:05:A0:5A)'),
+              label: const Text('Search for target devices (E0:5A:1B:05:A0:5A)'),
             ),
             const SizedBox(height: 8),
 
@@ -255,18 +255,18 @@ class _TestScreenState extends State<TestScreen> {
                 itemBuilder: (context, index) {
                   if (_devices.isEmpty) {
                     return const Center(
-                      child: Text('검색된 장치가 없습니다. 버튼을 눌러 검색하세요.', style: TextStyle(color: Colors.grey)),
+                      child: Text('No devices found. Please press the button to search.', style: TextStyle(color: Colors.grey)),
                     );
                   }
                   final device = _devices[index];
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: ListTile(
-                      title: Text(device.name ?? '이름 없음'),
+                      title: Text(device.name ?? 'No name'),
                       subtitle: Text(device.address),
                       trailing: ElevatedButton(
                         onPressed: () => connectBluetooth(device.address),
-                        child: const Text('연결'),
+                        child: const Text('connection'),
                       ),
                     ),
                   );
@@ -282,7 +282,7 @@ class _TestScreenState extends State<TestScreen> {
                   child: ElevatedButton(
                     onPressed: sendTestCanFrame,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
-                    child: const Text('단발 프레임 전송'),
+                    child: const Text('Single frame transmission'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -290,7 +290,7 @@ class _TestScreenState extends State<TestScreen> {
                   child: ElevatedButton(
                     onPressed: startSendingMockData,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                    child: const Text('루프 시작'),
+                    child: const Text('Start loop'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -298,7 +298,7 @@ class _TestScreenState extends State<TestScreen> {
                   child: ElevatedButton(
                     onPressed: stopSendingMockData,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                    child: const Text('루프 중지'),
+                    child: const Text('Stop loop'),
                   ),
                 ),
               ],
@@ -310,11 +310,11 @@ class _TestScreenState extends State<TestScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Text(
-                  '정상 수신: $_btReceivedFrameCount 개',
+                  'General reception: $_btReceivedFrameCount',
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                 ),
                 Text(
-                  '에러: $_btErrorFrameCount 개',
+                  'Error: $_btErrorFrameCount ',
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
                 ),
               ],
@@ -323,7 +323,7 @@ class _TestScreenState extends State<TestScreen> {
 
             // 로그 콘솔 영역
             const Text(
-              '실시간 통신 로그',
+              'Real-time communication logs',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 6),

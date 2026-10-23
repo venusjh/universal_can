@@ -2,47 +2,50 @@
 
 # Universal CAN Communication Package
 
-Flutter 환경에서 USB Serial 및 Bluetooth를 통해 커스텀 16바이트 바이너리 프로토콜 기반의 CAN 통신을 수행할 수 있도록 지원하는 패키지입니다.
+[![Flutter CI](https://github.com/venusjh/universal_can/actions/workflows/flutter.yml/badge.svg)](https://github.com/venusjh/universal_can/actions/workflows/flutter.yml)
+[![Pub Version](https://img.shields.io/pub/v/universal_can)](https://pub.dev/packages/universal_can)
+
+A Flutter package that enables custom 16-byte binary protocol-based CAN communication via USB Serial and Bluetooth.
 
 ---
 
-## 지원 환경 (Requirements)
+## Requirements
 - **Flutter:** >= 3.3.0
 - **Dart:** >= 3.11.4
-- **Platform:** Android (Bluetooth 등 하드웨어 통신 지원)
+- **Platform:** Android (Supports hardware communication such as Bluetooth)
 
-## 패키지 구조 및 아키텍처
+## Package Architecture & Structure
 
-이 패키지는 역할에 따라 명확하게 계층이 분리되어 있습니다.
+This package is cleanly separated into distinct layers by responsibility:
 
 1. **Client (`/client`)**
-   - `CanClient` / `CanTransport`: 상위 클라이언트와 하위 통신 채널이 지켜야 할 공통 인터페이스
-   - `CanProtocolClient`: CAN 연결 명령, 필터 설정, 데이터 송수신 및 파서 연동을 총괄하는 코어 컨트롤러
-   - `SerialCanClient` / `BluetoothCanClient`: USB Serial 및 Bluetooth 하드웨어 통로를 구현한 실무 클라이언트
+   - `CanClient` / `CanTransport`: Common interfaces for upper clients and lower communication channels.
+   - `CanProtocolClient`: Core controller managing CAN connection commands, filter settings, data transmission/reception, and parser integration.
+   - `SerialCanClient` / `BluetoothCanClient`: Practical clients implementing USB Serial and Bluetooth hardware pathways.
 2. **Model (`/model`)**
-   - `CanDataPackType`: 16바이트 수신 Raw 데이터를 객체로 변환하는 파싱 모델
-   - `CanSendFrameType`: 전송할 CAN 데이터를 16바이트 바이너리 배열로 직렬화하는 모델
-   - 각종 Enum (`CanSendCommand`, `CanBaudRate`, `CanBusMode` 등)
+   - `CanDataPackType`: Parsing model converting incoming 16-byte raw data into objects.
+   - `CanSendFrameType`: Serialization model converting outgoing CAN data into 16-byte binary arrays.
+   - Various enums (`CanSendCommand`, `CanBaudRate`, `CanBusMode`, etc.)
 3. **Parser (`/parser`)**
-   - `CanParser`: 수신 바이트 스트림을 버퍼링하고, 16바이트 단위로 잘라낸 뒤 CRC-8 검증 및 타임스탬프를 계산하는 파서
-   - `Crc8`: 룩업 테이블 기반의 무결성 검사 체크섬 유틸리티
+   - `CanParser`: Parser that buffers incoming byte streams, slices them into 16-byte units, performs CRC-8 verification, and calculates timestamps.
+   - `Crc8`: Lookup table-based integrity check checksum utility.
 
 ---
 
-## 주요 기능 및 사용 방법
+## Main Features & Usage
 
-### 1. 클라이언트 초기화 및 연결 (USB Serial 예시)
+### 1. Initialize Client & Connect (USB Serial Example)
 ```dart
-// USB Serial 기반 클라이언트 생성
+// Create a USB Serial-based client
 final canClient = SerialCanClient();
 
-// 1. 하드웨어 물리적 연결 (예: USB 포트 오픈)
+// 1. Physical hardware connection (e.g., open USB port)
 bool isConnected = await canClient.connect();
 if (isConnected) {
-  print('기기 연결 성공!');
+  print('Device connected successfully!');
 }
 
-// 2. CAN 버스 통신 시작 (채널 0, 125kbps, Normal 모드)
+// 2. Start CAN bus communication (Channel 0, 125kbps, Normal mode)
 await canClient.connectCan(
   channel: 0,
   baudRate: CanBaudRate.cb125k,
@@ -50,46 +53,48 @@ await canClient.connectCan(
 );
 ```
 
-### 2. 수신 데이터 스트림(Stream) 구독
-파싱이 완료된 `CanDataPackType` 프레임을 실시간으로 받아 처리할 수 있습니다.
+### 2. Subscribe to Incoming Data Stream
+Process parsed `CanDataPackType` frames in real time.
 ```dart
 canClient.frames.listen((packet) {
-  print('수신된 CAN ID: 0x${packet.id.toRadixString(16)}');
-  print('채널: ${packet.channel}, 데이터 길이: ${packet.dlc}');
-  print('페이로드 데이터: ${packet.data}');
+  print('Received CAN ID: 0x${packet.id.toRadixString(16)}');
+  print('Channel: ${packet.channel}, DLC: ${packet.dlc}');
+  print('Payload Data: ${packet.data}');
 });
 ```
 
-### 3. CAN 메시지 송신
+### 3. Send CAN Messages
 ```dart
-// 8바이트 페이로드 데이터 준비
+// Prepare 8-byte payload data
 final payload = Uint8List.fromList([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
 
-// 지정한 CAN ID로 메시지 전송
+// Send message with specified CAN ID
 await canClient.sendCanFrame(
   0x123, // CAN ID
   payload,
   channel: 0,
-  isExtended: true, // 29비트 확장 아이디 여부
+  isExtended: true, // Extended 29-bit ID flag
 );
 ```
 
-### 4. CAN ID 필터링 설정
-특정 ID의 메시지만 수신하도록 필터를 걸 수 있습니다.
+### 4. Configure CAN ID Filtering
+Filter messages to receive only specific IDs.
 ```dart
-// 채널 0번에서 0x123, 0x456 ID만 수신 허용
+// Allow receiving only IDs 0x123 and 0x456 on channel 0
 canClient.setCanIdFilter(0, {0x123, 0x456});
 ```
 
-### 5. 연결 해제 및 자원 정리
+### 5. Disconnect & Cleanup Resources
 ```dart
-// CAN 통신 중지
+// Stop CAN communication
 await canClient.disconnectCan(channel: 0);
 
-// 하드웨어 연결 해제 및 리소스 반환
+// Disconnect hardware and release resources
 await canClient.disconnect();
 await canClient.dispose();
 ```
+
+---
 
 ## License
 

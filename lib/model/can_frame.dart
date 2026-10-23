@@ -4,7 +4,7 @@ import 'dart:typed_data';
 // Enums
 // =============================================================================
 
-/// CAN 프레임의 수신/발신 및 상태 유형
+/// CAN Frame Receive/Send and Status Types
 enum CanFrameType {
   rxData,
   boardStatus,
@@ -12,7 +12,7 @@ enum CanFrameType {
   reserve,
 }
 
-/// CAN 모듈 제어 명령 종류
+/// Types of CAN module control commands
 enum CanSendCommand {
   scDataTx(0),
   scConnect(1),
@@ -27,7 +27,7 @@ enum CanSendCommand {
   const CanSendCommand(this.value);
 }
 
-/// CAN 통신 속도 (Baud Rate)
+/// CAN communication speed (Baud Rate)
 enum CanBaudRate {
   cb100k(0),
   cb125k(1),
@@ -39,7 +39,7 @@ enum CanBaudRate {
   const CanBaudRate(this.value);
 }
 
-/// CAN 버스 에러 플래그
+/// CAN bus error flag
 enum CanBusError {
   errCanBufferOverflow(1),
   errCanTransmitTimeout(2),
@@ -53,7 +53,7 @@ enum CanBusError {
   const CanBusError(this.value);
 }
 
-/// CAN 동작 모드
+/// CAN operation mode
 enum CanBusMode {
   cbmNormal(0),
   cbmListenOnly(1);
@@ -66,7 +66,7 @@ enum CanBusMode {
 // Data Models
 // =============================================================================
 
-/// 수신된 CAN 데이터 패킷 모델
+/// Received CAN data packet model
 class CanDataPackType {
   // ---------------------------------------------------------------------------
   // Properties
@@ -83,19 +83,19 @@ class CanDataPackType {
   /// Extended Identifier Flag (1 bit, true: 29bit / false: 11bit)
   bool flagIde;
 
-  /// 계산된 타임스탬프 (24 bits)
+  /// Calculated timestamp (24 bits)
   int timeStamp;
 
   /// Data Length Code (4 bits, 0~8)
   int dlc;
 
-  /// CAN 채널 (2 bits)
+  /// CAN channel (2 bits)
   int channel;
 
-  /// 프레임 타입 (2 bits)
+  /// Frame type (2 bits)
   int frameType;
 
-  /// 페이로드 데이터 (8 Bytes)
+  /// Payload data (8 Bytes)
   Uint8List data;
 
   // ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ class CanDataPackType {
     Uint8List? data,
   }) : data = data ?? Uint8List(8);
 
-  /// 16바이트 Raw 바이트 배열로부터 [CanDataPackType] 인스턴스를 생성합니다.
+  /// Creates an instance of [CanDataPackType] from a 16-byte Raw byte array.
   factory CanDataPackType.fromRawBytes(
       Uint8List bytes, {
         int timeOffset = 0,
@@ -125,7 +125,7 @@ class CanDataPackType {
 
     final byteData = ByteData.sublistView(bytes);
 
-    // bytes[0] : crc (무시 또는 검증용)
+    // bytes[0] : crc (For ignoring or verification)
     // bytes[1] : dlc(4), channel(2), frameType(2)
     int byte1 = bytes[1];
     int dlc = byte1 & 0x0F;
@@ -148,7 +148,7 @@ class CanDataPackType {
     if (!flagIde) id &= 0x7FF;
     if (flagRtr) {
       dlc = 0;
-      dataPayload = Uint8List(8); // 0으로 초기화
+      dataPayload = Uint8List(8); // Initialize to 0
     } else if (dlc > 8) {
       dlc = 8;
     }
@@ -169,7 +169,7 @@ class CanDataPackType {
   }
 }
 
-/// 전송할 CAN 프레임 모델 및 직렬화 클래스
+/// CAN frame model and serialization class to transmit
 class CanSendFrameType {
   // ---------------------------------------------------------------------------
   // Properties
@@ -177,19 +177,19 @@ class CanSendFrameType {
   /// CRC Checksum
   int crc = 0;
 
-  /// Data Length Code (기본값: 8)
+  /// Data Length Code (Default: 8)
   int dlc = 8;
 
-  /// CAN 채널
+  /// CAN channel
   int channel = 0;
 
-  /// 프레임 타입 (기본값: 2, Tx Data)
+  /// Frame Type (Default: 2, Tx Data)
   int frameType = 2;
 
-  /// 제어 명령 (Command)
+  /// Control Command (Command)
   int cmd = 0;
 
-  /// 제어 파라미터 (Parameter)
+  /// Control parameters(Parameter)
   int para = 0;
 
   /// CAN ID
@@ -204,35 +204,35 @@ class CanSendFrameType {
   /// Extended Identifier Flag
   bool flagIde = false;
 
-  /// 페이로드 데이터 (8 Bytes)
+  /// Payload data (8 Bytes)
   Uint8List data = Uint8List(8);
 
   // ---------------------------------------------------------------------------
   // Public Methods
   // ---------------------------------------------------------------------------
-  /// 설정된 필드값을 16바이트 [Uint8List] 배열로 직렬화합니다.
+  /// Serializes the set field value into a 16-byte [Uint8List] array.
   Uint8List toBytes() {
     final bytes = Uint8List(16);
     final byteData = ByteData.sublistView(bytes);
 
-    // 바이트 1 패킹
+    // Bite 1 packing
     bytes[1] = (dlc & 0x0F) | ((channel & 0x03) << 4) | ((frameType & 0x03) << 6);
     bytes[2] = cmd;
     bytes[3] = para;
 
-    // 바이트 4~7 패킹 (ID 및 플래그)
+    // Packing bytes 4~7 (ID and flags)
     int idFlags = (id & 0x1FFFFFFF) |
     ((flagErr ? 1 : 0) << 29) |
     ((flagRtr ? 1 : 0) << 30) |
     ((flagIde ? 1 : 0) << 31);
     byteData.setUint32(4, idFlags, Endian.little);
 
-    // 바이트 8~15 데이터 복사
+    // Copy data byte 8~15
     for (int i = 0; i < data.length && i < 8; i++) {
       bytes[8 + i] = data[i];
     }
 
-    // CRC는 sendFrame()에서 계산하여 첫 번째 바이트에 삽입
+    // The CRC is calculated in sendFrame() and inserted into the first byte.
     return bytes;
   }
 }

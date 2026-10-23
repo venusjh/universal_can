@@ -10,21 +10,21 @@ import '../parser/crc8.dart';
 // Interfaces
 // =============================================================================
 
-/// 하위 전송 레이어(블루투스, 시리얼 등)와의 통신을 위한 추상 인터페이스
+/// Abstract interface for communication with lower transport layers (Bluetooth, Serial, etc.)
 abstract class CanTransport {
-  /// 연결 상태 여부
+ /// Connection status
   bool get isConnected;
 
-  /// 수신 데이터(Raw Bytes) 스트림
+  /// Received Data (Raw Bytes) Stream
   Stream<Uint8List> get dataStream;
 
-  /// Raw 바이트 데이터 전송
+  /// Raw byte data transmission
   Future<bool> send(Uint8List data);
 
-  /// 통신 연결 해제
+  /// Disconnect communication
   Future<void> disconnect();
 
-  /// 리소스 해제
+  /// Release resources
   Future<void> dispose();
 }
 
@@ -32,30 +32,30 @@ abstract class CanTransport {
 // Protocol Client
 // =============================================================================
 
-/// CAN 통신 프로토콜을 처리하고 명령어 전송 및 파싱을 총괄하는 클라이언트 클래스
+/// A client class that handles the CAN communication protocol and oversees command transmission and parsing.
 class CanProtocolClient {
   // ---------------------------------------------------------------------------
   // Properties & Variables
   // ---------------------------------------------------------------------------
-  /// 하위 전송 인터페이스 객체
+  /// Sub-transmission interface object
   final CanTransport transport;
 
-  /// 데이터 수신 스트림 구독 객체
+  /// Data reception stream subscription object
   StreamSubscription<Uint8List>? _subscription;
 
-  /// CAN 메시지 파서
+  /// CAN message parser
   final CanParser _parser = CanParser();
 
-  /// 수신 파싱된 CAN 프레임을 전달하는 브로드캐스트 스트림 컨트롤러
+  /// 수Broadcast stream controller delivering newly parsed CAN frames
   final _frameController = StreamController<CanDataPackType>.broadcast();
 
   // ---------------------------------------------------------------------------
   // Getters
   // ---------------------------------------------------------------------------
-  /// 하위 트랜스포트의 연결 상태 반환
+  /// Return the connection status of the sub-transport
   bool get isConnected => transport.isConnected;
 
-  /// 파싱 완료된 CAN 데이터 패킷 스트림
+  /// Parsed CAN data packet stream
   Stream<CanDataPackType> get frames => _frameController.stream;
 
   // ---------------------------------------------------------------------------
@@ -66,13 +66,13 @@ class CanProtocolClient {
   // ---------------------------------------------------------------------------
   // Lifecycle & Stream Control
   // ---------------------------------------------------------------------------
-  /// 수신 데이터 스트림 리스닝을 시작합니다.
+  /// Start listening for incoming data stream.
   Future<void> startListening() async {
     await _subscription?.cancel();
     _subscription = transport.dataStream.listen(addData);
   }
 
-  /// 수신된 Raw 데이터를 파서에 추가하고 생성된 CAN 프레임을 스트림으로 전송합니다.
+  /// Adds the received raw data to the parser and sends the generated CAN frame as a stream.
   void addData(Uint8List data) {
     final parsedFrames = _parser.add(data);
 
@@ -81,14 +81,14 @@ class CanProtocolClient {
     }
   }
 
-  /// 구독을 중단하고 하위 트랜스포트 연결을 해제합니다.
+  /// Cancel the subscription and disconnect the sub-transport connection.
   Future<void> disconnect() async {
     await _subscription?.cancel();
     _subscription = null;
     await transport.disconnect();
   }
 
-  /// 스트림 컨트롤러 및 모든 리소스를 해제합니다.
+  /// Releases the stream controller and all resources.
   Future<void> dispose() async {
     await disconnect();
     await _frameController.close();
@@ -97,7 +97,7 @@ class CanProtocolClient {
   // ---------------------------------------------------------------------------
   // CAN Protocol Commands & Message Transmission
   // ---------------------------------------------------------------------------
-  /// CAN 송신 프레임의 CRC8을 계산하여 하위 트랜스포트로 전송합니다.
+  /// Calculate the CRC8 of the CAN transmission frame and send it to the downstream transport.
   Future<bool> sendFrame(CanSendFrameType frame) async {
     final data = frame.toBytes();
     data[0] = Crc8.calculate(data);
@@ -105,7 +105,7 @@ class CanProtocolClient {
     return transport.send(data);
   }
 
-  /// 지정한 CAN 채널에 대한 연결 명령을 전송합니다.
+  /// Sends a connection command for the specified CAN channel.
   Future<bool> connectCan({
     int channel = 0,
     CanBaudRate baudRate = CanBaudRate.cb125k,
@@ -125,7 +125,7 @@ class CanProtocolClient {
     return sendFrame(frame);
   }
 
-  /// 지정한 CAN 채널에 대한 연결 해제 명령을 전송합니다.
+  /// Sends a disconnect command for the specified CAN channel.
   Future<bool> disconnectCan({
     int channel = 0,
   }) async {
@@ -141,7 +141,7 @@ class CanProtocolClient {
     return sendFrame(frame);
   }
 
-  /// CAN ID와 데이터 배열을 포함하는 데이터 전송 프레임을 생성하여 전송합니다.
+  /// Generates and transmits a data transmission frame containing a CAN ID and a data array.
   Future<bool> sendCanFrame(
       int id,
       Uint8List data, {
@@ -173,7 +173,7 @@ class CanProtocolClient {
     return sendFrame(frame);
   }
 
-  /// 특정 채널에 수신 필터링할 CAN ID 목록을 등록합니다.
+  /// Register a list of CAN IDs to filter reception on a specific channel.
   void setCanIdFilter(int channel, Set<int> ids) {
     _parser.setCanIdFilter(channel, ids);
   }
