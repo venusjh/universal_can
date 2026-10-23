@@ -1,8 +1,6 @@
-[![Flutter CI](https://github.com/venusjh/universal_can/actions/workflows/main.yml/badge.svg)](https://github.com/venusjh/universal_can/actions/workflows/main.yml)
-
 # Universal CAN Communication Package
 
-[![Flutter CI](https://github.com/venusjh/universal_can/actions/workflows/flutter.yml/badge.svg)](https://github.com/venusjh/universal_can/actions/workflows/flutter.yml)
+[![Flutter CI](https://github.com/venusjh/universal_can/actions/workflows/main.yml/badge.svg)](https://github.com/venusjh/universal_can/actions/workflows/main.yml)
 [![Pub Version](https://img.shields.io/pub/v/universal_can)](https://pub.dev/packages/universal_can)
 
 A Flutter package that enables custom 16-byte binary protocol-based CAN communication via USB Serial and Bluetooth.
