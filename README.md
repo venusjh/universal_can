@@ -1,16 +1,28 @@
 # Universal CAN Communication Package
 
 [![Flutter CI](https://github.com/venusjh/universal_can/actions/workflows/main.yml/badge.svg)](https://github.com/venusjh/universal_can/actions/workflows/main.yml)
-[![Pub Version](https://img.shields.io/pub/v/universal_can)](https://pub.dev/packages/universal_can)
+[![Pub Version](https://img.shields.io/pub/v/universal_can.svg)](https://pub.dev/packages/universal_can)
 
-A Flutter package that enables custom 16-byte binary protocol-based CAN communication via USB Serial and Bluetooth.
+A Flutter package with CAN communication clients for two specific transport protocols: SLCAN over Android USB serial, and this package's fixed-length binary protocol over Bluetooth Classic Serial.
 
 ---
 
 ## Requirements
 - **Flutter:** >= 3.3.0
 - **Dart:** >= 3.11.4
-- **Platform:** Android (Supports hardware communication such as Bluetooth)
+- **USB Serial:** Android only. The native USB implementation is provided for Android.
+- **Bluetooth:** Requires a Bluetooth Classic device that exposes a serial connection and speaks the binary protocol described below. The package does not implement BLE GATT.
+
+## Device and Protocol Compatibility
+
+This package does **not** support every CAN adapter or automatically detect arbitrary CAN hardware. The CAN adapter must expose one of the protocols implemented by the selected client:
+
+- **`SerialCanClient`:** Android USB host connection to an adapter exposing USB CDC bulk IN/OUT endpoints and accepting SLCAN commands and frames. The client uses SLCAN commands (`C`, `S3`–`S8`, `O`) and parses standard/extended SLCAN data frames (`t`/`T`). The native code checks for USB IDs `0483:5740` and `1D50:606F` first, then searches for a CDC-class device. These checks are device discovery heuristics, not a guarantee that every matching device or firmware is compatible. The USB setup also sends CP210x-specific control transfers, so generic CDC compatibility is not guaranteed.
+- **`BluetoothCanClient`:** Bluetooth Classic Serial (RFCOMM) connection to a device whose firmware implements this package's 16-byte binary command/frame format, including CRC-8. A generic Bluetooth serial CAN adapter that uses a different protocol will not work without a matching adapter implementation.
+
+The two clients use different CAN-side protocols: USB serial uses SLCAN text, while Bluetooth serial uses the package's binary protocol. A device supporting one path is not necessarily compatible with the other. BLE GATT, SocketCAN, and vendor-specific USB protocols are not implemented in this release.
+
+No specific adapter model is claimed as verified by this package documentation. Confirm compatibility with the adapter firmware and target platform before relying on it in a deployment.
 
 ## Package Architecture & Structure
 
@@ -19,7 +31,7 @@ This package is cleanly separated into distinct layers by responsibility:
 1. **Client (`/client`)**
    - `CanClient` / `CanTransport`: Common interfaces for upper clients and lower communication channels.
    - `CanProtocolClient`: Core controller managing CAN connection commands, filter settings, data transmission/reception, and parser integration.
-   - `SerialCanClient` / `BluetoothCanClient`: Practical clients implementing USB Serial and Bluetooth hardware pathways.
+   - `SerialCanClient` / `BluetoothCanClient`: Clients for SLCAN over Android USB serial and the package binary protocol over Bluetooth Classic Serial, respectively.
 2. **Model (`/model`)**
    - `CanDataPackType`: Parsing model converting incoming 16-byte raw data into objects.
    - `CanSendFrameType`: Serialization model converting outgoing CAN data into 16-byte binary arrays.
@@ -32,9 +44,9 @@ This package is cleanly separated into distinct layers by responsibility:
 
 ## Main Features & Usage
 
-### 1. Initialize Client & Connect (USB Serial Example)
+### 1. Initialize Client & Connect (Android USB SLCAN Example)
 ```dart
-// Create a USB Serial-based client
+// Create a client for a compatible SLCAN USB adapter on Android
 final canClient = SerialCanClient();
 
 // 1. Physical hardware connection (e.g., open USB port)
@@ -71,7 +83,7 @@ await canClient.sendCanFrame(
   0x123, // CAN ID
   payload,
   channel: 0,
-  isExtended: true, // Extended 29-bit ID flag
+  isExtended: false, // Standard 11-bit ID flag for 0x123
 );
 ```
 

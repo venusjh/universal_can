@@ -1,17 +1,7 @@
-# universal_can_example
+# Universal CAN Example
 
-Demonstrates how to use the universal_can plugin.
+This Android example demonstrates `BluetoothCanClient` with a Bluetooth Classic serial device whose firmware implements the package's 16-byte binary CAN protocol and CRC-8.
 
-## Getting Started
+Enter the paired device's Bluetooth address, connect and start CAN, then send the sample standard CAN frame or watch received frames in the log. The sample frame uses CAN ID `0x123` with an 8-byte payload.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This example does not demonstrate USB SLCAN. See the package README for the transport and device compatibility details.

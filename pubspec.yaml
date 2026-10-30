@@ -1,6 +1,6 @@
 name: universal_can
-description: "A robust Flutter and Dart package for universal CAN bus communication, supporting binary framing, CRC8 validation, and multi-client connections (Bluetooth & Serial)."
-version: 0.0.3
+description: "Flutter CAN clients for SLCAN over Android USB serial and a CRC-8 binary protocol over Bluetooth Classic serial."
+version: 0.0.4
 homepage: "https://github.com/venusjh/universal_can"
 
 environment:

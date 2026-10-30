@@ -9,3 +9,9 @@
 
 ## 0.0.3
 * Translated remaining Korean text in README examples to English.
+
+## 0.0.4
+* Clarified supported transports, protocols, and platform limitations in the README.
+* Corrected the Pub version badge URL to use an explicit SVG path.
+* Simplified the example app to demonstrate Bluetooth Classic connection, CAN setup, frame reception, and transmission without a hard-coded device address.
+* Updated package metadata to describe the implemented transport protocols accurately.
