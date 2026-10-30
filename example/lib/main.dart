@@ -101,52 +101,48 @@ class _CanExampleScreenState extends State<CanExampleScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Universal CAN Example')),
-        body: Padding(
+        body: ListView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Connect to a Bluetooth Classic serial device that implements '
-                'the package binary protocol.',
+          children: [
+            const Text(
+              'Connect to a Bluetooth Classic serial device that implements '
+              'the package binary protocol.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _addressController,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Bluetooth device address',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Bluetooth device address',
-                  border: OutlineInputBorder(),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilledButton(
+                  onPressed: _connected ? null : _connect,
+                  child: const Text('Connect and start CAN'),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  FilledButton(
-                    onPressed: _connected ? null : _connect,
-                    child: const Text('Connect and start CAN'),
-                  ),
-                  OutlinedButton(
-                    onPressed: _connected ? _disconnect : null,
-                    child: const Text('Disconnect'),
-                  ),
-                  OutlinedButton(
-                    onPressed: _canStarted ? _sendFrame : null,
-                    child: const Text('Send test frame'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text('Status: ${_canStarted ? 'CAN active' : _connected ? 'Connected' : 'Disconnected'}'),
-              const Divider(),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _log.length,
-                  itemBuilder: (context, index) => Text(_log[index]),
+                OutlinedButton(
+                  onPressed: _connected ? _disconnect : null,
+                  child: const Text('Disconnect'),
                 ),
-              ),
-            ],
-          ),
+                OutlinedButton(
+                  onPressed: _canStarted ? _sendFrame : null,
+                  child: const Text('Send test frame'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Status: ${_canStarted ? 'CAN active' : _connected ? 'Connected' : 'Disconnected'}',
+            ),
+            const Divider(),
+            for (final entry in _log) Text(entry),
+          ],
         ),
       );
 }
